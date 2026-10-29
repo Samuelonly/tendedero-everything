@@ -5,8 +5,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 CONFIG="${1:-release}"
-APP="build/Tendedero Multimedia.app"
-VERSION="1.7.0"
+APP="build/Tendedero Everything.app"
+VERSION="1.7.1"
 
 # Builds one architecture and prints the binary's path.
 # The Command Line Tools for macOS 27 ship an SDK whose SwiftUI needs a macro
@@ -61,14 +61,14 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>Tendedero Multimedia</string>
-  <key>CFBundleDisplayName</key><string>Tendedero Multimedia</string>
+  <key>CFBundleName</key><string>Tendedero Everything</string>
+  <key>CFBundleDisplayName</key><string>Tendedero Everything</string>
   <key>CFBundleIdentifier</key><string>app.tendedero.Tendedero</string>
   <key>CFBundleExecutable</key><string>Tendedero</string>
   <key>CFBundleIconFile</key><string>Tendedero</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
-  <key>CFBundleVersion</key><string>9</string>
+  <key>CFBundleVersion</key><string>10</string>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleLocalizations</key><array>${LANGUAGES}</array>
   <key>LSMinimumSystemVersion</key><string>14.0</string>

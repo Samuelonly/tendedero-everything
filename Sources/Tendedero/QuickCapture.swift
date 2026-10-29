@@ -180,7 +180,7 @@ final class QuickCapture {
         CGRequestScreenCaptureAccess()
         let alert = NSAlert()
         alert.messageText = L("Quick Capture needs Screen Recording")
-        alert.informativeText = L("Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again.")
+        alert.informativeText = L("Turn on Screen Recording for Tendedero Everything in System Settings, then open Tendedero Everything again.")
         alert.addButton(withTitle: L("Open System Settings"))
         alert.addButton(withTitle: L("Later"))
         if let icon = NSImage(named: "Tendedero") ?? NSApp.applicationIconImage { alert.icon = icon }

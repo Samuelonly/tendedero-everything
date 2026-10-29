@@ -9,7 +9,7 @@
 "Open screenshots folder" = "स्क्रीनशॉट फ़ोल्डर खोलें";
 "Sounds" = "आवाज़ें";
 "Check for Updates…" = "अपडेट देखें…";
-"Quit Tendedero Multimedia" = "Tendedero Multimedia बंद करें";
+"Quit Tendedero Everything" = "Tendedero Everything बंद करें";
 "Keep on line" = "रस्सी पर रखें";
 "As many as fit" = "जितने आ सकें";
 "%d photos" = "%d फ़ोटो";
@@ -31,7 +31,7 @@
 "When the pointer rests in the menu bar" = "जब पॉइंटर मेनू बार में रुके";
 "When something new hangs" = "जब कुछ नया टँगे";
 "Over full screen apps" = "फ़ुल स्क्रीन ऐप्स के ऊपर";
-"Tendedero Multimedia, hanging copied things" = "Tendedero Multimedia, कॉपी की गई तस्वीरें टाँग रहा है";
+"Tendedero Everything, hanging copied things" = "Tendedero Everything, कॉपी की गई तस्वीरें टाँग रहा है";
 "The line is empty" = "रस्सी खाली है";
 "%d on the line" = "रस्सी पर %d";
 
@@ -52,7 +52,7 @@
 /* QuickCapture */
 "Quick Capture" = "तेज़ कैप्चर";
 "Quick Capture needs Screen Recording" = "तेज़ कैप्चर के लिए स्क्रीन रिकॉर्डिंग चाहिए";
-"Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again." = "सिस्टम सेटिंग्स में Tendedero Multimedia के लिए स्क्रीन रिकॉर्डिंग चालू करें, फिर Tendedero Multimedia दोबारा खोलें।";
+"Turn on Screen Recording for Tendedero Everything in System Settings, then open Tendedero Everything again." = "सिस्टम सेटिंग्स में Tendedero Everything के लिए स्क्रीन रिकॉर्डिंग चालू करें, फिर Tendedero Everything दोबारा खोलें।";
 "Open System Settings" = "सिस्टम सेटिंग्स खोलें";
 "Later" = "बाद में";
 "Click a window, or drag for an area. Escape quits." = "किसी विंडो पर क्लिक करें, या क्षेत्र के लिए खींचें। Escape से बाहर निकलें।";

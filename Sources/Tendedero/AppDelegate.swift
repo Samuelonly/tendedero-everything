@@ -652,7 +652,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func updateStatusIcon() {
         let on = ClipboardWatcher.isEnabled
         let count = line.liveCount
-        let description = on ? L("Tendedero Multimedia, hanging copied things") : "Tendedero Multimedia"
+        let description = on ? L("Tendedero Everything, hanging copied things") : "Tendedero Everything"
         let state = count == 0 ? L("The line is empty") : String(format: L("%d on the line"), count)
         let image = NSImage(systemSymbolName: on ? "tshirt.fill" : "tshirt",
                             accessibilityDescription: "\(description), \(state)")
@@ -815,7 +815,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         })
 
         menu.addItem(.separator())
-        menu.addItem(ClosureMenuItem(L("Quit Tendedero Multimedia"), key: "q") {
+        menu.addItem(ClosureMenuItem(L("Quit Tendedero Everything"), key: "q") {
             NSApp.terminate(nil)
         })
     }

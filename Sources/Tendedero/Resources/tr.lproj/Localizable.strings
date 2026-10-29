@@ -7,7 +7,7 @@
 "Open screenshots folder" = "Ekran görüntüleri klasörünü aç";
 "Sounds" = "Sesler";
 "Check for Updates…" = "Güncellemeleri denetle…";
-"Quit Tendedero Multimedia" = "Tendedero Multimedia'yu kapat";
+"Quit Tendedero Everything" = "Tendedero Everything'yu kapat";
 "Keep on line" = "İpte tut";
 "As many as fit" = "Sığdığı kadar";
 "%d photos" = "%d fotoğraf";
@@ -29,7 +29,7 @@
 "When the pointer rests in the menu bar" = "İşaretçi menü çubuğunda durduğunda";
 "When something new hangs" = "Yeni bir şey asıldığında";
 "Over full screen apps" = "Tam ekran uygulamaların üzerinde";
-"Tendedero Multimedia, hanging copied things" = "Tendedero Multimedia, kopyalanan görselleri asıyor";
+"Tendedero Everything, hanging copied things" = "Tendedero Everything, kopyalanan görselleri asıyor";
 "The line is empty" = "İp boş";
 "%d on the line" = "İpte %d tane";
 
@@ -50,7 +50,7 @@
 /* QuickCapture */
 "Quick Capture" = "Hızlı yakalama";
 "Quick Capture needs Screen Recording" = "Hızlı yakalama için ekran kaydı gerekir";
-"Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again." = "Sistem Ayarları'nda Tendedero Multimedia için ekran kaydını açın, sonra Tendedero Multimedia'yu yeniden açın.";
+"Turn on Screen Recording for Tendedero Everything in System Settings, then open Tendedero Everything again." = "Sistem Ayarları'nda Tendedero Everything için ekran kaydını açın, sonra Tendedero Everything'yu yeniden açın.";
 "Open System Settings" = "Sistem Ayarları'nı aç";
 "Later" = "Sonra";
 "Click a window, or drag for an area. Escape quits." = "Bir pencereye tıklayın ya da alan için sürükleyin. Escape çıkar.";

@@ -9,7 +9,7 @@
 "Open screenshots folder" = "Open screenshots folder";
 "Sounds" = "Sounds";
 "Check for Updates…" = "Check for Updates…";
-"Quit Tendedero Multimedia" = "Quit Tendedero Multimedia";
+"Quit Tendedero Everything" = "Quit Tendedero Everything";
 "Keep on line" = "Keep on line";
 "As many as fit" = "As many as fit";
 "%d photos" = "%d photos";
@@ -31,7 +31,7 @@
 "When the pointer rests in the menu bar" = "When the pointer rests in the menu bar";
 "When something new hangs" = "When something new hangs";
 "Over full screen apps" = "Over full screen apps";
-"Tendedero Multimedia, hanging copied things" = "Tendedero Multimedia, hanging copied images";
+"Tendedero Everything, hanging copied things" = "Tendedero Everything, hanging copied images";
 "The line is empty" = "The line is empty";
 "%d on the line" = "%d on the line";
 
@@ -52,7 +52,7 @@
 /* QuickCapture */
 "Quick Capture" = "Quick Capture";
 "Quick Capture needs Screen Recording" = "Quick Capture needs Screen Recording";
-"Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again." = "Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again.";
+"Turn on Screen Recording for Tendedero Everything in System Settings, then open Tendedero Everything again." = "Turn on Screen Recording for Tendedero Everything in System Settings, then open Tendedero Everything again.";
 "Open System Settings" = "Open System Settings";
 "Later" = "Later";
 "Click a window, or drag for an area. Escape quits." = "Click a window, or drag for an area. Escape quits.";

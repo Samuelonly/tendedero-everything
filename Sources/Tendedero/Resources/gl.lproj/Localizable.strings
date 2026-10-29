@@ -7,7 +7,7 @@
 "Open screenshots folder" = "Abrir o cartafol de capturas";
 "Sounds" = "Sons";
 "Check for Updates…" = "Buscar actualizacións…";
-"Quit Tendedero Multimedia" = "Saír de Tendedero Multimedia";
+"Quit Tendedero Everything" = "Saír de Tendedero Everything";
 "Keep on line" = "Gardar na corda";
 "As many as fit" = "As que caiban";
 "%d photos" = "%d fotos";
@@ -29,7 +29,7 @@
 "When the pointer rests in the menu bar" = "Ao deixar o punteiro na barra de menús";
 "When something new hangs" = "Cando se pendura algo novo";
 "Over full screen apps" = "Sobre apps a pantalla completa";
-"Tendedero Multimedia, hanging copied things" = "Tendedero Multimedia, pendurando imaxes copiadas";
+"Tendedero Everything, hanging copied things" = "Tendedero Everything, pendurando imaxes copiadas";
 "The line is empty" = "A corda está baleira";
 "%d on the line" = "%d na corda";
 
@@ -50,7 +50,7 @@
 /* QuickCapture */
 "Quick Capture" = "Captura rápida";
 "Quick Capture needs Screen Recording" = "A captura rápida precisa a gravación de pantalla";
-"Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again." = "Activa a gravación de pantalla para Tendedero Multimedia nos Axustes do Sistema e volve abrir Tendedero Multimedia.";
+"Turn on Screen Recording for Tendedero Everything in System Settings, then open Tendedero Everything again." = "Activa a gravación de pantalla para Tendedero Everything nos Axustes do Sistema e volve abrir Tendedero Everything.";
 "Open System Settings" = "Abrir Axustes do Sistema";
 "Later" = "Máis tarde";
 "Click a window, or drag for an area. Escape quits." = "Fai clic nunha ventá ou arrastra para escoller unha área. Escape sae.";

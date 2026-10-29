@@ -7,7 +7,7 @@
 "Open screenshots folder" = "スクリーンショットのフォルダを開く";
 "Sounds" = "サウンド";
 "Check for Updates…" = "アップデートを確認…";
-"Quit Tendedero Multimedia" = "Tendedero Multimediaを終了";
+"Quit Tendedero Everything" = "Tendedero Everythingを終了";
 "Keep on line" = "ロープに残す数";
 "As many as fit" = "収まるだけ";
 "%d photos" = "%d枚";
@@ -29,7 +29,7 @@
 "When the pointer rests in the menu bar" = "ポインタがメニューバーにとどまったとき";
 "When something new hangs" = "新しいものが吊るされたとき";
 "Over full screen apps" = "フルスクリーンのアプリの上にも";
-"Tendedero Multimedia, hanging copied things" = "Tendedero Multimedia、コピーした画像を吊るしています";
+"Tendedero Everything, hanging copied things" = "Tendedero Everything、コピーした画像を吊るしています";
 "The line is empty" = "ロープは空です";
 "%d on the line" = "ロープに%d件";
 
@@ -50,7 +50,7 @@
 /* QuickCapture */
 "Quick Capture" = "クイックキャプチャ";
 "Quick Capture needs Screen Recording" = "クイックキャプチャには画面収録の権限が必要です";
-"Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again." = "システム設定でTendedero Multimediaの画面収録をオンにしてから、Tendedero Multimediaを開き直してください。";
+"Turn on Screen Recording for Tendedero Everything in System Settings, then open Tendedero Everything again." = "システム設定でTendedero Everythingの画面収録をオンにしてから、Tendedero Everythingを開き直してください。";
 "Open System Settings" = "システム設定を開く";
 "Later" = "あとで";
 "Click a window, or drag for an area. Escape quits." = "ウィンドウをクリックするか、ドラッグで範囲を選択します。Escapeで終了します。";
