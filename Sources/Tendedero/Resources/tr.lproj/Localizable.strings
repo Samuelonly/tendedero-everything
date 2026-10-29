@@ -75,5 +75,5 @@
 "Copied" = "Kopyalandı";
 
 /* Clipboard */
-"Hang copied things" = "";
-"Text, images and videos you copy hang on the line too" = "";
+"Hang copied things" = "Kopyalananları as";
+"Text, images and videos you copy hang on the line too" = "Kopyaladığınız metin, görsel ve videolar da ipe asılır";

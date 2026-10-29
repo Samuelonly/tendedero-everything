@@ -77,5 +77,5 @@
 "Copied" = "कॉपी हो गया";
 
 /* Clipboard */
-"Hang copied things" = "";
-"Text, images and videos you copy hang on the line too" = "";
+"Hang copied things" = "कॉपी की गई चीज़ें टाँगें";
+"Text, images and videos you copy hang on the line too" = "आपके द्वारा कॉपी किए गए टेक्स्ट, चित्र और वीडियो भी लाइन पर टँगते हैं";

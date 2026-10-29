@@ -90,11 +90,11 @@ final class ClipboardWatcher {
             return
         }
 
-        // Text. A link or an email address on its own is left for whoever
-        // wants it: it is not something to hang.
+        // Text, including a link copied on its own: that is what most copies
+        // are, so it hangs like anything else.
         guard let raw = pb.string(forType: .string) else { return }
         let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, text.utf8.count <= Self.maxTextBytes, !Self.isLink(text) else { return }
+        guard !text.isEmpty, text.utf8.count <= Self.maxTextBytes else { return }
         saveText(text)
     }
 
@@ -104,16 +104,6 @@ final class ClipboardWatcher {
         if isText(url) { return true }
         guard let type = UTType(filenameExtension: url.pathExtension) else { return false }
         return type.conforms(to: .image) || type.conforms(to: .movie)
-    }
-
-    /// A single link or address, with no words around it.
-    private static func isLink(_ text: String) -> Bool {
-        guard !text.contains(where: \.isWhitespace) else { return false }
-        if let url = URL(string: text), let scheme = url.scheme, !scheme.isEmpty { return true }
-        if text.lowercased().hasPrefix("www.") { return true }
-        // An email address: something@something.something.
-        let parts = text.split(separator: "@")
-        return parts.count == 2 && parts[1].contains(".")
     }
 
     /// PNG bytes are kept as they are; TIFF becomes PNG. Either way the image

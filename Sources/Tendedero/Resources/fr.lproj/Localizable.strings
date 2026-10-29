@@ -75,5 +75,5 @@
 "Copied" = "Copié";
 
 /* Clipboard */
-"Hang copied things" = "";
-"Text, images and videos you copy hang on the line too" = "";
+"Hang copied things" = "Accrocher les éléments copiés";
+"Text, images and videos you copy hang on the line too" = "Le texte, les images et les vidéos que vous copiez s'accrochent aussi à la corde";
