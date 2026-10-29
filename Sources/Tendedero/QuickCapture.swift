@@ -141,8 +141,22 @@ final class QuickCapture {
         }
     }
 
+    /// Where a capture is written while it hangs. The line is a view, not a
+    /// library: captures go to the system's temporary folder, so Spotlight
+    /// never finds them, the Desktop stays clean, and quitting the app
+    /// removes them. Nothing survives the run.
+    static var scratchFolder: URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("Tendedero-Captures", isDirectory: true)
+    }
+
+    static func clearScratch() {
+        try? FileManager.default.removeItem(at: scratchFolder)
+    }
+
     private func save(_ image: CGImage) -> URL? {
-        let folder = OwnFolder.prepare()
+        let folder = Self.scratchFolder
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let stamp = Self.stamp()
         var url = folder.appendingPathComponent("Capture \(stamp).png")
         var n = 2

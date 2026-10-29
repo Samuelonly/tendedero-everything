@@ -61,7 +61,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         set { UserDefaults.standard.set(!newValue, forKey: "quietHang") }
     }
 
+    /// Nothing a Quick Capture wrote outlives the run.
+    func applicationWillTerminate(_ notification: Notification) {
+        QuickCapture.clearScratch()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Anything still in the scratch folder was left by a run that did not
+        // quit cleanly; this one starts empty.
+        QuickCapture.clearScratch()
         let host = NSHostingView(rootView: LineView(line: line))
         host.sizingOptions = []
         panel = LinePanel(content: host)

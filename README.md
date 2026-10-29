@@ -59,7 +59,7 @@
 |:--|:--|
 | **Multimedia clipboard** | Text, Markdown, links, a copied file, a copied path, images and `.mp4`/`.mov` video hang on the line, not only screenshots. Nothing is filtered out by content. |
 | **Line on the left or right** | Position › Left, Top or Right in the menu bar. Left is the default; the rope bends into the screen and the photos stay upright. |
-| **Quick Capture** | <kbd>⌃</kbd>&thinsp;<kbd>⌥</kbd>&thinsp;<kbd>S</kbd> dims the screen. Click a window or drag an area, and the shot flies straight onto the line. One shot per press: the overlay gets out of the way by itself, so the next capture is another press of the shortcut. Escape cancels. |
+| **Quick Capture** | <kbd>⌃</kbd>&thinsp;<kbd>⌥</kbd>&thinsp;<kbd>S</kbd> dims the screen. Click a window or drag an area, and the shot flies straight onto the line. One shot per press: the overlay gets out of the way by itself, so the next capture is another press of the shortcut. Escape cancels. Nothing goes to the Desktop or to Spotlight: the line is a view, not a library, so the capture exists only while the app runs. |
 | **Two shortcuts** | Show or hide the line, and Quick Capture, each recorded under Shortcuts in the menu bar. The two cannot share a combination. |
 | **Keep 5, 10 or 15** | Shorter keeps, five out of the box, instead of 25, 50 and 100. |
 | **No takeover** | It watches the screenshot folder but no longer changes macOS's screenshot settings, and no longer opens at login. |
