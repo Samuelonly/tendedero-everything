@@ -4,9 +4,9 @@ import ImageIO
 import UniformTypeIdentifiers
 
 /// Quick Capture: press its shortcut and the screen dims. The pointer picks
-/// a window, a click shoots it; drag to shoot an area instead. The overlay
-/// stays up so the next click shoots the next thing, until Escape or a
-/// right click. Nothing opens an editor: each capture flies straight onto
+/// a window, a click shoots it; drag to shoot an area instead. One capture,
+/// then the overlay goes away: the shortcut is what starts the next one.
+/// Escape cancels. Nothing opens an editor: each capture flies straight onto
 /// the line.
 @MainActor
 final class QuickCapture {
@@ -122,19 +122,16 @@ final class QuickCapture {
                 rect = bounds
             }
             self.setVisible(true)
-            self.refreshWindows()
             self.busy = false
             guard let image, let url = self.save(image) else {
+                // Still up, so another shot can be tried.
                 NSSound.beep()
                 return
             }
+            // One capture is the whole errand: the line flies it in, and the
+            // screen goes back to normal without a second click.
+            self.stop()
             self.onCaptured?(url, Self.appKitRect(rect))
-        }
-    }
-
-    private func refreshWindows() {
-        for panel in overlays {
-            panel.shots = Self.windows(on: panel.hostScreen)
         }
     }
 
