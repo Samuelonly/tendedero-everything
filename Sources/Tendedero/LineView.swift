@@ -67,8 +67,10 @@ enum Layout {
     static var maxCardHeight: CGFloat { photoMaxHeight + Frame.inset * 2 }
     /// A photo down the side needs less room than one across the top.
     static var sideSpacing: CGFloat { maxCardHeight + 20 }
-    /// The strip along a side edge: the rope, the clip and a card.
-    static var sideWidth: CGFloat { cardWidth + 24 }
+    /// The strip along a side edge: the rope, the clip and a card. The card
+    /// starts where the rope has dipped to its deepest, so the room the dip
+    /// takes has to be added in, or the panel cuts the card off.
+    static var sideWidth: CGFloat { ropeTop + maxSag + sideCardInset + cardWidth + 4 }
     /// A card down the side starts this far in from the rope, with the clip
     /// overlapping it by the same 12 points as on the top version.
     static let sideCardInset: CGFloat = 14
@@ -82,8 +84,11 @@ enum Layout {
     static var alongSpacing: CGFloat { position.isSide ? sideSpacing : spacing }
 
     /// The rope hangs as a parabola from edge to edge of the screen, and
-    /// down the sides it bends into the screen the same way.
-    static func sag(width: CGFloat) -> CGFloat { min(30, width * 0.018) }
+    /// down the sides it bends into the screen the same way. The deepest dip
+    /// is what the panel has to make room for.
+    static let maxSag: CGFloat = 30
+
+    static func sag(width: CGFloat) -> CGFloat { min(maxSag, width * 0.018) }
 
     /// How far the rope is from the edge it starts at, `u` points along it.
     static func ropeOffset(_ u: CGFloat, length: CGFloat) -> CGFloat {
