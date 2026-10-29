@@ -1,3 +1,17 @@
+> ### This is a fork
+>
+> **Tendedero Multimedia** is a fork of [Tendedero](https://github.com/alejandrobujan/tendedero) by
+> [Alejandro Buján](https://alejandrobujan.com). Everything the original does, it still does. The fork
+> adds a multimedia clipboard (text, Markdown, images and video), the line along the
+> left or right edge as well as the top, Quick Capture, and two shortcuts. The sections below are
+> the original README, kept as it was, with the fork's changes marked.
+>
+> **这是分叉项目。** 本项目是 [Alejandro Buján](https://alejandrobujan.com) 的
+> [Tendedero](https://github.com/alejandrobujan/tendedero) 的分叉版，保留原版全部功能，
+> 并增加多媒体剪贴板（文字、Markdown、图片、视频）、晾衣绳的左侧/右侧位置、
+> 快速捕获和两个快捷键。下面的介绍来自原版，除标注为本分叉新增的部分外均保持原样。
+> 原版的名称与图标归原作者所有。
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
   <img src="docs/images/hero-light.png" alt="Tendedero. Screenshots, hung out to dry. Three screenshots in glass frames hang from a thin line under the macOS menu bar.">
@@ -19,6 +33,19 @@
   <a href="https://trendshift.io/repositories/287033?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-287033" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/287033/daily?language=Swift" alt="alejandrobujan%2Ftendedero | Trendshift" width="250" height="55"/></a>
   <a href="https://trendshift.io/repositories/287033?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-287033" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/287033/weekly?language=Swift" alt="alejandrobujan%2Ftendedero | Trendshift" width="250" height="55"/></a>
 </p>
+
+<br>
+
+## What this fork adds
+
+| | |
+|:--|:--|
+| **Multimedia clipboard** | Text, Markdown, images and `.mp4`/`.mov` video copied in any app hang on the line, not only screenshots. |
+| **Line on the left or right** | Position › Left, Top or Right in the menu bar. Left is the default; the rope bends into the screen and the photos stay upright. |
+| **Quick Capture** | <kbd>⌃</kbd>&thinsp;<kbd>⌥</kbd>&thinsp;<kbd>S</kbd> dims the screen. Click a window or drag an area, keep shooting, press Escape to stop. Each shot flies straight onto the line. |
+| **Two shortcuts** | Show or hide the line, and Quick Capture, each recorded under Shortcuts in the menu bar. The two cannot share a combination. |
+| **Keep 5, 10 or 15** | Shorter keeps, five out of the box, instead of 25, 50 and 100. |
+| **No takeover** | It watches the screenshot folder but no longer changes macOS's screenshot settings, and no longer opens at login. |
 
 <br>
 
@@ -56,15 +83,17 @@ Rest the pointer in the menu bar and it glides down. Move away and it's gone.
 | Drag to the Trash, or click the cross | Let it go. |
 | Rest the pointer in the menu bar | Bring the line down on that screen. |
 | Click anything in the menu bar | Put it away. |
-| <kbd>⌃</kbd>&thinsp;<kbd>⌥</kbd>&thinsp;<kbd>T</kbd> | Show or hide the line. Change it under Shortcut in the menu bar. |
+| <kbd>⌃</kbd>&thinsp;<kbd>⌥</kbd>&thinsp;<kbd>T</kbd> | Show or hide the line. Change it under Shortcuts in the menu bar. |
+| <kbd>⌃</kbd>&thinsp;<kbd>⌥</kbd>&thinsp;<kbd>S</kbd> | Quick Capture. Shoot a window or an area straight onto the line. |
 
 <br>
 
 ## Your Desktop. Finally clear.
 
-Hand Tendedero your screenshots<sup>1</sup> and they skip the Desktop
-entirely. No floating thumbnail. No five-second wait. Each capture hangs
-the instant you take it, and only what you drag out is kept.
+Tendedero watches the folder macOS saves screenshots to — the Desktop, unless
+you moved it — and hangs each new capture the instant it appears. Only what
+you drag out is kept; anything from the line's own folder goes back to the
+Trash when you let it go.
 
 Screen recordings hang there too, with a play button over them.
 Press and hold one to trim it.
@@ -73,13 +102,18 @@ Same shortcuts. Same muscle memory. Just less mess.
 
 <br>
 
-## Copied images too.
+## Copied things too.
 
-Take a screenshot with <kbd>⌃</kbd> held, or copy an image in Preview, and it
-hangs on the line like any other. Turn on Hang copied images in the menu bar
-and the shirt fills in while it is on. Only images: anything copied along
-with text or a file, and anything a password manager marks as private, is
-left alone.
+Copy an image in Preview, a paragraph from a document, a Markdown note, or
+a `.mp4`/`.mov` video in Finder, and it hangs on the line until you want it
+back. Turn on Hang copied things in the menu bar and everything you copy
+while it is on gets hung.
+
+Text and Markdown hang as a paper card with their first lines on it. Click
+one to copy it back, double click to open it in its default editor. A file
+that lives somewhere else stays where it is; only what Quick Capture shoots
+is kept in the line's own folder. Links and email addresses on their own are
+left alone, as are copies a password manager marks as private.
 
 <br>
 
@@ -101,27 +135,22 @@ Tendedero runs entirely on your Mac, and your screenshots never leave it.
 | **Network access** | None |
 | **Price** | Free |
 | **License** | MIT for the code. The name and icon are not included. |
+| **Fork of** | [alejandrobujan/tendedero](https://github.com/alejandrobujan/tendedero) |
 
 <br>
 
 ## Install
 
-Download the disk image from the [latest release](../../releases/latest),
-open it and drag Tendedero to Applications. Or install it with Homebrew:
-
-```sh
-brew install --cask alejandrobujan/tap/tendedero
-```
-
-Tendedero is signed with a Developer ID and notarized by Apple, so it opens
-like any other app.
+Build it from source with the steps below. The disk image and the Homebrew
+cask belong to the original Tendedero and install the original, not this
+fork.
 
 <br>
 
 ## Build from source
 
 ```sh
-git clone git@github.com:alejandrobujan/tendedero.git
+git clone <this repository>
 cd tendedero
 scripts/build-app.sh
 open build/Tendedero.app
@@ -136,14 +165,16 @@ so macOS asks again for access to the Desktop after each rebuild.
 
 | File | Role |
 |:--|:--|
-| `AppDelegate.swift` | Menu bar, shortcut, revealing and tucking away the line |
-| `LinePanel.swift` | The transparent strip along the top of the screen |
-| `LineView.swift` | The line and where each photo hangs |
+| `AppDelegate.swift` | Menu bar, shortcuts, revealing and tucking away the line |
+| `LinePanel.swift` | The transparent strip where the line hangs, along the top or a side |
+| `LineView.swift` | The line, its three positions and where each photo hangs |
 | `PeggedView.swift` | One photo: glass frame, clip, swing and breeze |
 | `GrabArea.swift` | Click, long press, drag and drop |
 | `ScreenshotWatcher.swift` | Notices new screenshots |
-| `ClipboardWatcher.swift` | Notices images copied to the clipboard |
-| `Inbox.swift` | Takes over screenshot settings and puts them back |
+| `ClipboardWatcher.swift` | Notices what you copy: images, text, Markdown, video, links and email |
+| `QuickCapture.swift` | The dimmed screen that shoots windows and areas |
+| `HotKey.swift` | The global shortcuts and the Shortcuts window |
+| `OwnFolder.swift` | The line's own folder, the one whose files it moves to the Trash |
 | `Markup.swift` | Opens the system Markup editor and saves the result |
 | `Trim.swift` | Trims a screen recording and saves the result |
 | `FullScreen.swift` | Knows when to stay hidden |
@@ -160,19 +191,12 @@ language. `swift scripts/check-strings.swift` checks that none is missing.
 
 <br>
 
----
-
-<sub>
-1. On first launch, Tendedero offers to handle your screenshots. If you accept, it turns off the floating thumbnail and saves new screenshots to its own folder, two settings also found under Options in Cmd+Shift+5. Your previous settings are saved and restored when Tendedero quits or the option is turned off from the menu bar. Tendedero hides automatically while an app is in full screen.
-</sub>
-
-<br>
-<br>
-
 <p align="center">
   <img src="docs/images/icon.png" width="64" height="64" alt="">
   <br>
   <sub>The code is MIT licensed. The Tendedero name and icon are not, so forks need their own. See <a href="LICENSE">LICENSE</a>.</sub>
   <br>
-  <sub>Designed and built by <a href="https://alejandrobujan.com">Alejandro Buján</a>.</sub>
+  <sub>Original app designed and built by <a href="https://alejandrobujan.com">Alejandro Buján</a>.</sub>
+  <br>
+  <sub>This fork, Tendedero Multimedia, is maintained by <a href="https://github.com/Samuelonly">Samuelonly</a>.</sub>
 </p>

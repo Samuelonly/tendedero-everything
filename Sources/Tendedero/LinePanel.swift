@@ -45,8 +45,18 @@ final class LinePanel: NSPanel {
 
     func placeOnScreen(_ screen: NSScreen? = nil) {
         guard let visible = (screen ?? LinePanel.screenUnderPointer())?.visibleFrame else { return }
-        let target = NSRect(x: visible.minX, y: visible.maxY - Layout.panelHeight,
+        let target: NSRect
+        switch Layout.position {
+        case .top:
+            target = NSRect(x: visible.minX, y: visible.maxY - Layout.panelHeight,
                             width: visible.width, height: Layout.panelHeight)
+        case .left:
+            target = NSRect(x: visible.minX, y: visible.minY,
+                            width: Layout.sideWidth, height: visible.height)
+        case .right:
+            target = NSRect(x: visible.maxX - Layout.sideWidth, y: visible.minY,
+                            width: Layout.sideWidth, height: visible.height)
+        }
         if frame != target { setFrame(target, display: true) }
     }
 }

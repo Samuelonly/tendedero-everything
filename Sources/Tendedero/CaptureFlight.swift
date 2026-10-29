@@ -43,6 +43,11 @@ final class CaptureFlight {
     private let from: CGRect
     private let to: CGRect
     private let tilt: CGFloat
+    /// The point of the card the clip holds: its top edge on the top
+    /// version, the edge facing the screen along a side.
+    private let position: Layout.Position
+    private let startPoint: CGPoint
+    private let endPoint: CGPoint
     private var falling = false
     private var duration: CFTimeInterval = CaptureFlight.duration
     private var start: CFTimeInterval = 0
@@ -86,6 +91,18 @@ final class CaptureFlight {
         self.from = from
         self.to = to
         self.tilt = tilt
+        position = Layout.position
+        switch position {
+        case .top:
+            startPoint = CGPoint(x: from.midX, y: from.maxY)
+            endPoint = CGPoint(x: to.midX, y: to.maxY)
+        case .left:
+            startPoint = CGPoint(x: from.midX, y: from.maxY)
+            endPoint = CGPoint(x: to.minX, y: to.midY)
+        case .right:
+            startPoint = CGPoint(x: from.midX, y: from.maxY)
+            endPoint = CGPoint(x: to.maxX, y: to.midY)
+        }
         window = NSPanel(contentRect: screen.frame, styleMask: [.borderless, .nonactivatingPanel],
                          backing: .buffered, defer: false)
         window.isOpaque = false
@@ -100,7 +117,13 @@ final class CaptureFlight {
         window.contentView = host
         let scale = screen.backingScaleFactor
 
-        container.anchorPoint = CGPoint(x: 0.5, y: 1)   // the card's top center
+        // The anchor is the point the clip holds, so the flight lands where
+        // the real card will hang.
+        switch position {
+        case .top: container.anchorPoint = CGPoint(x: 0.5, y: 1)
+        case .left: container.anchorPoint = CGPoint(x: 0, y: 0.5)
+        case .right: container.anchorPoint = CGPoint(x: 1, y: 0.5)
+        }
         container.shadowColor = NSColor.black.cgColor
         container.shadowOpacity = 0.24
         container.shadowRadius = 10
@@ -122,7 +145,12 @@ final class CaptureFlight {
         clip.colors = [NSColor(white: 0.70, alpha: 1).cgColor, NSColor(white: 0.93, alpha: 1).cgColor,
                        NSColor(white: 0.82, alpha: 1).cgColor, NSColor(white: 0.62, alpha: 1).cgColor]
         clip.locations = [0, 0.35, 0.65, 1]
-        clip.startPoint = CGPoint(x: 0, y: 0.5); clip.endPoint = CGPoint(x: 1, y: 0.5)
+        if position.isSide {
+            // A horizontal clip is lit across its thickness.
+            clip.startPoint = CGPoint(x: 0.5, y: 0); clip.endPoint = CGPoint(x: 0.5, y: 1)
+        } else {
+            clip.startPoint = CGPoint(x: 0, y: 0.5); clip.endPoint = CGPoint(x: 1, y: 0.5)
+        }
         clip.cornerRadius = 3.5
         clip.borderColor = NSColor(white: 1, alpha: 0.7).cgColor
         clip.borderWidth = 0.6
@@ -172,7 +200,7 @@ final class CaptureFlight {
         let angle = tilt + (tilt * 7 + 20) * e
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        container.position = CGPoint(x: to.midX - origin.x, y: to.maxY - origin.y - 520 * e)
+        container.position = CGPoint(x: endPoint.x - origin.x, y: endPoint.y - origin.y - 520 * e)
         container.setAffineTransform(CGAffineTransform(rotationAngle: -angle * .pi / 180))
         container.opacity = Float(1 - e)
         CATransaction.commit()
@@ -194,15 +222,15 @@ final class CaptureFlight {
         func lerp(_ a: CGFloat, _ b: CGFloat) -> CGFloat { a + (b - a) * k }
 
         let w = lerp(from.width, to.width), h = lerp(from.height, to.height)
-        let topX = lerp(from.midX, to.midX) - origin.x
-        let topY = lerp(from.maxY, to.maxY) - origin.y + sin(.pi * k) * Self.arc
+        let gripX = lerp(startPoint.x, endPoint.x) - origin.x
+        let gripY = lerp(startPoint.y, endPoint.y) - origin.y + sin(.pi * k) * Self.arc
         let inset = 4 * k
         let radius = lerp(0, 16)
 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         container.bounds = CGRect(x: 0, y: 0, width: w, height: h)
-        container.position = CGPoint(x: topX, y: topY)
+        container.position = CGPoint(x: gripX, y: gripY)
         // SwiftUI tilts clockwise for positive angles; Core Animation the other way.
         container.setAffineTransform(CGAffineTransform(rotationAngle: -tilt * .pi / 180 * k))
         container.shadowPath = CGPath(roundedRect: container.bounds, cornerWidth: radius, cornerHeight: radius, transform: nil)
@@ -216,8 +244,16 @@ final class CaptureFlight {
         edge.opacity = chrome
         photo.frame = container.bounds.insetBy(dx: inset, dy: inset)
         photo.cornerRadius = max(0, radius - inset)
-        // The clip grips the top edge: 26 points tall, 12 of them over the card.
-        clip.frame = CGRect(x: w / 2 - 4.5, y: h - 12, width: 9, height: 26)
+        // The clip grips the edge the card hangs from: 26 points long, 12 of
+        // them over the card.
+        switch position {
+        case .top:
+            clip.frame = CGRect(x: w / 2 - 4.5, y: h - 12, width: 9, height: 26)
+        case .left:
+            clip.frame = CGRect(x: -12, y: h / 2 - 4.5, width: 26, height: 9)
+        case .right:
+            clip.frame = CGRect(x: w - 12, y: h / 2 - 4.5, width: 26, height: 9)
+        }
         clip.opacity = chrome
         CATransaction.commit()
     }

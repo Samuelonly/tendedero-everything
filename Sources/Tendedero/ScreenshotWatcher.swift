@@ -1,16 +1,14 @@
 import Foundation
 
 /// Watches the folder macOS saves screenshots to and reports new ones.
-/// Tendedero never takes screenshots itself: you keep your usual shortcut
-/// (or CleanShot, or anything else) and the line just picks them up.
+/// Tendedero does not take screenshots there itself: you keep your usual
+/// shortcut (or CleanShot, or anything else) and the line picks them up.
+/// Quick Capture has its own folder, and hangs what it shoots itself.
 final class ScreenshotWatcher {
     let folder: URL
     /// On the Desktop we only accept real screenshots, tagged by macOS with an
     /// extended attribute. In a dedicated folder, any image counts.
     private let onlyTaggedScreenshots: Bool
-    /// Screen recordings carry no tag, so they are only picked up in
-    /// Tendedero's own folder, where nothing else is saved.
-    private let acceptsRecordings: Bool
     private var known: Set<String>?
     private var source: DispatchSourceFileSystemObject?
     private var pending: DispatchWorkItem?
@@ -38,12 +36,11 @@ final class ScreenshotWatcher {
         self.folder = folder ?? Self.screenshotFolder()
         onlyTaggedScreenshots = !anyImage
             && self.folder.standardizedFileURL.path == Self.desktop.standardizedFileURL.path
-        acceptsRecordings = self.folder.standardizedFileURL.path == Inbox.folder.standardizedFileURL.path
     }
 
     static func screenshotFolder() -> URL {
         let fm = FileManager.default
-        // Read fresh through cfprefsd: inbox mode changes this value at runtime.
+        // Read fresh through cfprefsd: another app may have changed it.
         CFPreferencesAppSynchronize("com.apple.screencapture" as CFString)
         // macOS 27 keeps it in "location-screenshot"; earlier versions in "location".
         let domain = "com.apple.screencapture" as CFString
@@ -169,7 +166,6 @@ final class ScreenshotWatcher {
     }
 
     private func isCandidate(_ url: URL) -> Bool {
-        if isRecording(url) { return acceptsRecordings }
         guard Self.imageExtensions.contains(url.pathExtension.lowercased()) else { return false }
         return onlyTaggedScreenshots ? isScreenCapture(url) : true
     }

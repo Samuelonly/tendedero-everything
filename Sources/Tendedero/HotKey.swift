@@ -2,37 +2,95 @@ import AppKit
 import Carbon
 
 /// A single global shortcut through the Carbon hot key API. Unlike a global
-/// key monitor, it needs no Accessibility permission.
+/// key monitor, it needs no Accessibility permission. Each shortcut registers
+/// its own id, so several can be live at once.
 final class HotKey {
     private var ref: EventHotKeyRef?
-    private static var action: (() -> Void)?
+    private let id: UInt32
+    private static var actions: [UInt32: () -> Void] = [:]
+    private static var nextID: UInt32 = 1
     private static var handlerInstalled = false
 
     /// Nil when the combination cannot be registered, for example because
     /// another app already took it.
     init?(_ shortcut: Shortcut, action: @escaping () -> Void) {
-        HotKey.action = action
-        // One handler for the app, however many times the shortcut changes.
+        let id = HotKey.nextID
+        HotKey.nextID += 1
+        self.id = id
+        HotKey.actions[id] = action
+        // One handler for the app, however many shortcuts there are.
         if !HotKey.handlerInstalled {
-            var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-            InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
-                DispatchQueue.main.async { HotKey.action?() }
+            var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard),
+                                     eventKind: UInt32(kEventHotKeyPressed))
+            InstallEventHandler(GetApplicationEventTarget(), { _, event, _ in
+                var hotKeyID = EventHotKeyID()
+                let status = GetEventParameter(event, EventParamName(kEventParamDirectObject),
+                                               EventParamType(typeEventHotKeyID), nil,
+                                               MemoryLayout<EventHotKeyID>.size, nil, &hotKeyID)
+                guard status == noErr else { return noErr }
+                let id = hotKeyID.id
+                DispatchQueue.main.async { HotKey.actions[id]?() }
                 return noErr
             }, 1, &spec, nil, nil)
             HotKey.handlerInstalled = true
         }
-        let id = EventHotKeyID(signature: OSType(0x5445_4E44), id: 1) // "TEND"
-        let status = RegisterEventHotKey(UInt32(shortcut.keyCode), UInt32(shortcut.carbonModifiers), id,
-                                         GetApplicationEventTarget(), 0, &ref)
+        let hotKeyID = EventHotKeyID(signature: OSType(0x5445_4E44), id: id) // "TEND"
+        let status = RegisterEventHotKey(UInt32(shortcut.keyCode), UInt32(shortcut.carbonModifiers),
+                                         hotKeyID, GetApplicationEventTarget(), 0, &ref)
         guard status == noErr, ref != nil else { return nil }
     }
 
     deinit {
         if let ref { UnregisterEventHotKey(ref) }
+        HotKey.actions[id] = nil
     }
 }
 
-/// The shortcut that shows and hides the line: ⌃⌥T unless changed, or none.
+/// The global shortcuts, one per action. Each is stored on its own, so
+/// clearing one leaves the others alone.
+enum ShortcutAction: String, CaseIterable {
+    case showLine, quickCapture
+
+    var defaultsKey: String {
+        switch self {
+        case .showLine: return "shortcut"
+        case .quickCapture: return "shortcutQuickCapture"
+        }
+    }
+
+    /// Out of the box the line opens with ⌃⌥T and captures with ⌃⌥S.
+    var standard: Shortcut? {
+        switch self {
+        case .showLine: return .standard
+        case .quickCapture:
+            return Shortcut(keyCode: kVK_ANSI_S, modifiers: [.control, .option], key: "s")
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .showLine: return L("Show line")
+        case .quickCapture: return L("Quick Capture")
+        }
+    }
+
+    /// The user's choice. Nil means no shortcut at all.
+    var shortcut: Shortcut? {
+        get {
+            guard let saved = UserDefaults.standard.dictionary(forKey: defaultsKey) else { return standard }
+            guard let code = saved["keyCode"] as? Int, let flags = saved["modifiers"] as? UInt,
+                  let key = saved["key"] as? String else { return nil }
+            return Shortcut(keyCode: code, modifiers: NSEvent.ModifierFlags(rawValue: flags), key: key)
+        }
+        nonmutating set {
+            UserDefaults.standard.set(newValue.map {
+                ["keyCode": $0.keyCode, "modifiers": $0.modifiers.rawValue, "key": $0.key] as [String: Any]
+            } ?? [:], forKey: defaultsKey)
+        }
+    }
+}
+
+/// A key combination as typed, for the menus and the settings.
 struct Shortcut: Equatable {
     var keyCode: Int
     var modifiers: NSEvent.ModifierFlags
@@ -40,23 +98,6 @@ struct Shortcut: Equatable {
     var key: String
 
     static let standard = Shortcut(keyCode: kVK_ANSI_T, modifiers: [.control, .option], key: "t")
-
-    private static let defaultsKey = "shortcut"
-
-    /// The user's choice. Nil means no shortcut at all.
-    static var current: Shortcut? {
-        get {
-            guard let saved = UserDefaults.standard.dictionary(forKey: defaultsKey) else { return standard }
-            guard let code = saved["keyCode"] as? Int, let flags = saved["modifiers"] as? UInt,
-                  let key = saved["key"] as? String else { return nil }
-            return Shortcut(keyCode: code, modifiers: NSEvent.ModifierFlags(rawValue: flags), key: key)
-        }
-        set {
-            UserDefaults.standard.set(newValue.map {
-                ["keyCode": $0.keyCode, "modifiers": $0.modifiers.rawValue, "key": $0.key] as [String: Any]
-            } ?? [:], forKey: defaultsKey)
-        }
-    }
 
     /// From a key press, if it makes a usable global shortcut: it needs
     /// Command, Control or Option, so typing alone never triggers it.
@@ -95,7 +136,7 @@ struct Shortcut: Equatable {
 
 /// Asks for a new shortcut in a small window: the next key press with
 /// Command, Control or Option becomes it. Escape cancels and Delete leaves
-/// the line without a shortcut.
+/// the action without a shortcut.
 @MainActor
 final class ShortcutRecorder: NSObject, NSWindowDelegate {
     static let shared = ShortcutRecorder()
@@ -160,5 +201,138 @@ final class ShortcutRecorder: NSObject, NSWindowDelegate {
         window?.close()
         window = nil
         done?(result)
+    }
+}
+
+/// The window behind "Shortcuts" in the menu bar: one row per action, each
+/// with a Change button and a Clear one. Two actions may not share a
+/// combination.
+@MainActor
+final class ShortcutSettings: NSObject, NSWindowDelegate {
+    static let shared = ShortcutSettings()
+
+    /// Called when this window opens, so the app stops listening for its
+    /// shortcuts while one is being recorded.
+    var onBegin: (() -> Void)?
+    /// Called after a change, so the app registers the new combinations.
+    var onChange: (() -> Void)?
+
+    private var window: NSWindow?
+    private var stack: NSStackView?
+
+    func show() {
+        if let window {
+            NSApp.activate(ignoringOtherApps: true)
+            window.makeKeyAndOrderFront(nil)
+            return
+        }
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 480, height: 220),
+                              styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.title = L("Shortcuts")
+        window.isReleasedWhenClosed = false
+        window.delegate = self
+
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.alignment = .leading
+        stack.spacing = 12
+        stack.edgeInsets = NSEdgeInsets(top: 20, left: 24, bottom: 20, right: 24)
+        stack.frame = window.contentLayoutRect
+        stack.autoresizingMask = [.width, .height]
+        stack.widthAnchor.constraint(equalToConstant: 480).isActive = true
+        window.contentView = stack
+        self.window = window
+        self.stack = stack
+        render()
+        window.center()
+        onBegin?()
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    private func render() {
+        guard let stack else { return }
+        stack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+
+        let hint = NSTextField(labelWithString: L("These shortcuts work in every app."))
+        hint.font = .systemFont(ofSize: 11)
+        hint.textColor = .secondaryLabelColor
+        stack.addArrangedSubview(hint)
+
+        for action in ShortcutAction.allCases {
+            stack.addArrangedSubview(row(for: action))
+        }
+
+        let done = NSButton(title: L("Done"), target: self, action: #selector(close))
+        done.bezelStyle = .rounded
+        done.keyEquivalent = "\r"
+        stack.addArrangedSubview(done)
+    }
+
+    private func row(for action: ShortcutAction) -> NSView {
+        let label = NSTextField(labelWithString: action.title)
+        label.font = .systemFont(ofSize: 13)
+        label.widthAnchor.constraint(equalToConstant: 140).isActive = true
+
+        let keys = NSTextField(labelWithString: action.shortcut?.display ?? L("None"))
+        keys.font = .systemFont(ofSize: 13, weight: .medium)
+        keys.textColor = action.shortcut == nil ? .secondaryLabelColor : .labelColor
+        keys.widthAnchor.constraint(equalToConstant: 110).isActive = true
+
+        let change = NSButton(title: L("Change"), target: self, action: #selector(changeShortcut(_:)))
+        change.bezelStyle = .rounded
+        change.identifier = NSUserInterfaceItemIdentifier(action.rawValue)
+        change.widthAnchor.constraint(equalToConstant: 80).isActive = true
+
+        let clear = NSButton(title: L("Clear"), target: self, action: #selector(clearShortcut(_:)))
+        clear.bezelStyle = .rounded
+        clear.identifier = NSUserInterfaceItemIdentifier(action.rawValue)
+        clear.isEnabled = action.shortcut != nil
+        clear.widthAnchor.constraint(equalToConstant: 70).isActive = true
+
+        let row = NSStackView(views: [label, keys, NSView(), change, clear])
+        row.orientation = .horizontal
+        row.spacing = 8
+        return row
+    }
+
+    @objc private func changeShortcut(_ sender: NSButton) {
+        guard let action = ShortcutAction(rawValue: sender.identifier?.rawValue ?? "") else { return }
+        ShortcutRecorder.shared.record { [weak self] result in
+            guard let self, let result else {
+                self?.onChange?()
+                return
+            }
+            if let result, ShortcutAction.allCases.contains(where: { $0 != action && $0.shortcut == result }) {
+                let alert = NSAlert()
+                alert.messageText = L("That shortcut is already used")
+                alert.informativeText = L("Each action needs a different combination.")
+                NSApp.activate(ignoringOtherApps: true)
+                alert.runModal()
+                self.onChange?()
+                return
+            }
+            action.shortcut = result
+            self.onChange?()
+            self.render()
+        }
+    }
+
+    @objc private func clearShortcut(_ sender: NSButton) {
+        guard let action = ShortcutAction(rawValue: sender.identifier?.rawValue ?? "") else { return }
+        action.shortcut = nil
+        onChange?()
+        render()
+    }
+
+    @objc private func close() {
+        window?.close()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard (notification.object as? NSWindow) === window else { return }
+        window = nil
+        stack = nil
+        onChange?()
     }
 }

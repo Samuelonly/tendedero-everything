@@ -15,13 +15,28 @@ struct PeggedView: View {
     private var pressed: Bool { line.pressedID == item.id }
 
     var body: some View {
-        VStack(spacing: -12) {
-            Clothespin()
-                .zIndex(1)
-            card
+        Group {
+            if Layout.position.isSide {
+                // Along a side the clip grips the photo's edge that faces the
+                // screen, and the photo hangs to the inside of the rope.
+                HStack(alignment: .center, spacing: -12) {
+                    if Layout.position == .left {
+                        clothespin
+                        card
+                    } else {
+                        card
+                        clothespin
+                    }
+                }
+            } else {
+                VStack(spacing: -12) {
+                    clothespin
+                    card
+                }
+            }
         }
-        .rotationEffect(.degrees(swing + item.tilt), anchor: .top)
-        .offset(y: arrived ? 0 : -46)
+        .rotationEffect(.degrees(swing + item.tilt), anchor: swingAnchor)
+        .offset(x: arrivalOffset.width, y: arrivalOffset.height)
         // The fall itself is drawn over the whole screen by CaptureFlight, so
         // the card here just steps aside at once.
         .opacity(item.falling || item.flying ? 0 : (arrived ? 1 : 0))
@@ -31,6 +46,34 @@ struct PeggedView: View {
         .onChange(of: item.flying) { was, now in if was && !now { land() } }
         .onChange(of: line.gust) { _, _ in breeze() }
         .onChange(of: copied) { _, isCopied in if isCopied { nudge(3) } }
+    }
+
+    /// Photos sway from where the clip holds them: the top edge on the top
+    /// version, the inside edge along a side.
+    private var swingAnchor: UnitPoint {
+        switch Layout.position {
+        case .top: return .top
+        case .left: return .leading
+        case .right: return .trailing
+        }
+    }
+
+    /// The card arrives from beyond its edge rather than from above.
+    private var arrivalOffset: CGSize {
+        guard !arrived else { return .zero }
+        switch Layout.position {
+        case .top: return CGSize(width: 0, height: -46)
+        case .left: return CGSize(width: -46, height: 0)
+        case .right: return CGSize(width: 46, height: 0)
+        }
+    }
+
+    private var clothespin: some View {
+        Clothespin()
+            .rotationEffect(.degrees(Layout.position.clipAngle))
+            .frame(width: Layout.position.isSide ? 26 : 9,
+                   height: Layout.position.isSide ? 9 : 26)
+            .zIndex(1)
     }
 
     /// The photo fits inside the card area keeping its proportions, so the
@@ -81,7 +124,7 @@ struct PeggedView: View {
             .shadow(color: .black.opacity(hovering ? 0.26 : 0.18), radius: hovering ? 14 : 10, y: hovering ? 8 : 5)
             // Holding presses the photo in slowly, so a long press feels like
             // it is building up to something.
-            .scaleEffect(pressed ? 0.95 : (hovering ? 1.035 : 1), anchor: .top)
+            .scaleEffect(pressed ? 0.95 : (hovering ? 1.035 : 1), anchor: swingAnchor)
             .animation(pressed ? .easeInOut(duration: 0.45) : .spring(response: 0.3, dampingFraction: 0.6), value: pressed)
             .opacity(dragging ? 0.45 : 1)
             .overlay(alignment: .topLeading) {

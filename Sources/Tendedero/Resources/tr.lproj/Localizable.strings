@@ -1,22 +1,13 @@
 /* Turkish. */
 
 /* AppDelegate */
-"Let Tendedero handle your screenshots?" = "Ekran görüntülerini Tendedero yönetsin mi?";
-"Screenshots will hang on the line the instant you take them, without the floating thumbnail, and will not pile up on your Desktop. Drag one to a folder to keep it, or discard it with the cross. You can turn this off from the menu bar, and your settings come back when Tendedero quits." = "Ekran görüntüleri, kayan küçük resim olmadan anında ipin üzerine asılacak ve Masaüstünüzde birikmeyecek. Saklamak için bir klasöre sürükleyin ya da çarpı ile silin. Bunu menü çubuğundan kapatabilirsiniz; Tendedero kapandığında ayarlarınız geri gelir.";
-"Turn on" = "Etkinleştir";
-"Not now" = "Şimdi değil";
 "Hide line" = "İpi gizle";
 "Show line" = "İpi göster";
 "Take everything down" = "Hepsini indir";
-"Handle screenshots" = "Ekran görüntülerini yönet";
-"Screenshots hang instantly and skip the Desktop" = "Ekran görüntüleri anında asılır ve Masaüstünü atlar";
 "Open screenshots folder" = "Ekran görüntüleri klasörünü aç";
 "Sounds" = "Sesler";
-"Open at login" = "Başlangıçta aç";
 "Check for Updates…" = "Güncellemeleri denetle…";
-"Quit Tendedero" = "Tendedero'yu kapat";
-"Could not change the login setting" = "Giriş ayarı değiştirilemedi";
-"Move Tendedero to the Applications folder and try again." = "Tendedero'yu Uygulamalar klasörüne taşıyın ve tekrar deneyin.";
+"Quit Tendedero Multimedia" = "Tendedero Multimedia'yu kapat";
 "Keep on line" = "İpte tut";
 "As many as fit" = "Sığdığı kadar";
 "%d photos" = "%d fotoğraf";
@@ -25,8 +16,6 @@
 "Stop Watching" = "İzlemeyi durdur";
 "Watch" = "İzle";
 "New images saved to this folder will hang on the line." = "Bu klasöre kaydedilen yeni görseller ipe asılır.";
-"Shortcut" = "Kısayol";
-"Change Shortcut…" = "Kısayolu değiştir…";
 "Change Shortcut" = "Kısayolu değiştir";
 "None" = "Yok";
 "Space" = "Boşluk";
@@ -40,11 +29,31 @@
 "When the pointer rests in the menu bar" = "İşaretçi menü çubuğunda durduğunda";
 "When something new hangs" = "Yeni bir şey asıldığında";
 "Over full screen apps" = "Tam ekran uygulamaların üzerinde";
-"Hang copied images" = "Kopyalanan görselleri as";
-"Images you copy hang on the line too" = "Kopyaladığınız görseller de ipe asılır";
-"Tendedero, hanging copied images" = "Tendedero, kopyalanan görselleri asıyor";
+"Tendedero Multimedia, hanging copied things" = "Tendedero Multimedia, kopyalanan görselleri asıyor";
 "The line is empty" = "İp boş";
 "%d on the line" = "İpte %d tane";
+
+/* Line, position and shortcuts */
+"Position" = "Konum";
+"Top" = "Üst";
+"Left" = "Sol";
+"Right" = "Sağ";
+"Shortcuts" = "Kısayollar";
+"Change Shortcuts…" = "Kısayolları değiştir…";
+"Change" = "Değiştir";
+"Clear" = "Kaldır";
+"Done" = "Bitti";
+"These shortcuts work in every app." = "Bu kısayollar tüm uygulamalarda çalışır.";
+"That shortcut is already used" = "Bu kısayol zaten kullanılıyor";
+"Each action needs a different combination." = "Her eylem farklı bir bileşim ister.";
+
+/* QuickCapture */
+"Quick Capture" = "Hızlı yakalama";
+"Quick Capture needs Screen Recording" = "Hızlı yakalama için ekran kaydı gerekir";
+"Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again." = "Sistem Ayarları'nda Tendedero Multimedia için ekran kaydını açın, sonra Tendedero Multimedia'yu yeniden açın.";
+"Open System Settings" = "Sistem Ayarları'nı aç";
+"Later" = "Sonra";
+"Click a window, or drag for an area. Escape quits." = "Bir pencereye tıklayın ya da alan için sürükleyin. Escape çıkar.";
 
 /* GrabArea */
 "Copy" = "Kopyala";
@@ -64,3 +73,7 @@
 
 /* PeggedView */
 "Copied" = "Kopyalandı";
+
+/* Clipboard */
+"Hang copied things" = "";
+"Text, images and videos you copy hang on the line too" = "";

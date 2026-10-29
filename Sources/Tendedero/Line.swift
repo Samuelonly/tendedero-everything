@@ -17,6 +17,8 @@ struct Pegged: Identifiable, Equatable {
     var flying = false
     /// A screen recording rather than a screenshot.
     var isRecording: Bool { Tendedero.isRecording(url) }
+    /// A copied paragraph or Markdown note, hanging as a paper card.
+    var isPlainText: Bool { Tendedero.isText(url) }
 
     static func == (a: Pegged, b: Pegged) -> Bool {
         a.id == b.id && a.falling == b.falling && a.flying == b.flying && a.thumb === b.thumb
@@ -48,12 +50,19 @@ final class Line: ObservableObject {
     @Published var scroll: CGFloat = 0
 
     /// Keep on line, from the menu bar: how many photos the line keeps, or
-    /// nil for as many as fit across the screen.
-    nonisolated static let keepChoices = [25, 50, 100]
+    /// nil for as many as fit across the screen. A wide screen fills up at
+    /// about a dozen, so the choices stay small enough to mean something.
+    nonisolated static let keepChoices = [5, 10, 15]
+    /// Out of the box the line keeps five.
+    nonisolated static let defaultKeep = 5
     nonisolated static var keepOnLine: Int? {
         get {
-            let n = UserDefaults.standard.integer(forKey: "keepOnLine")
-            return keepChoices.contains(n) ? n : nil
+            let defaults = UserDefaults.standard
+            guard defaults.object(forKey: "keepOnLine") != nil else { return defaultKeep }
+            let n = defaults.integer(forKey: "keepOnLine")
+            // Nothing stored means as many as fit.
+            guard n != 0 else { return nil }
+            return keepChoices.contains(n) ? n : defaultKeep
         }
         set { UserDefaults.standard.set(newValue ?? 0, forKey: "keepOnLine") }
     }
@@ -156,8 +165,14 @@ final class Line: ObservableObject {
     func copy(_ id: UUID) {
         guard let item = items.first(where: { $0.id == id }) else { return }
         let entry = NSPasteboardItem()
+        // A text card copies its text, which apps paste as text.
+        if item.isPlainText, let text = try? String(contentsOf: item.url, encoding: .utf8) {
+            entry.setString(text, forType: .string)
+        }
         // A recording is copied as the file, which apps paste as the video.
-        if !item.isRecording, let png = pngData(item.url) { entry.setData(png, forType: .png) }
+        if !item.isRecording, !item.isPlainText, let png = pngData(item.url) {
+            entry.setData(png, forType: .png)
+        }
         entry.setString(item.url.absoluteString, forType: .fileURL)
         let pb = NSPasteboard.general
         pb.clearContents()
@@ -198,11 +213,11 @@ final class Line: ObservableObject {
         byReference: true)
 
     /// Whether the file lives in Tendedero's own folder. Those are discarded
-    /// to the Trash, or the folder would fill up with forgotten screenshots.
+    /// to the Trash, or the folder would fill up with forgotten captures.
     /// Files anywhere else, like the Desktop, stay where they are.
     func isInInbox(_ id: UUID) -> Bool {
         guard let item = items.first(where: { $0.id == id }) else { return false }
-        return item.url.standardizedFileURL.path.hasPrefix(Inbox.folder.standardizedFileURL.path + "/")
+        return OwnFolder.contains(item.url)
     }
 
     /// The corner cross and "Take down" both end up here.
@@ -210,12 +225,9 @@ final class Line: ObservableObject {
         if isInInbox(id) { trash(id, quietly: quietly) } else { drop(id, quietly: quietly) }
     }
 
-    /// The oldest photo falling off a full line. Like the cross, a file from
-    /// Tendedero's folder goes to the Trash, or nothing would ever take it out
-    /// of that folder. If the Trash refuses it, it still leaves the line.
     /// Moves along a line that holds more than fit, from a scroll gesture.
     func scroll(by delta: CGFloat) {
-        let most = CGFloat(max(0, items.count - visibleCount)) * Layout.spacing
+        let most = CGFloat(max(0, items.count - visibleCount)) * Layout.alongSpacing
         let next = min(most, max(0, scroll + delta))
         if next != scroll { scroll = next }
     }
@@ -229,6 +241,9 @@ final class Line: ObservableObject {
         scroll = 0
     }
 
+    /// The oldest photo falling off a full line. Like the cross, a file from
+    /// Tendedero's folder goes to the Trash, or nothing would ever take it out
+    /// of that folder. If the Trash refuses it, it still leaves the line.
     private func letGo(_ id: UUID) {
         if isInInbox(id), trash(id, quietly: true) { return }
         drop(id, quietly: true)
@@ -261,11 +276,14 @@ final class Line: ObservableObject {
     }
 
     /// Long press: open the photo in the system Markup editor. Markup does
-    /// not edit video, so a recording opens in the trimming editor instead.
+    /// not edit video, so a recording opens in the trimming editor instead,
+    /// and a text card opens in its own editor.
     func markup(_ id: UUID) {
         guard let item = items.first(where: { $0.id == id }) else { return }
         if item.isRecording {
             Trim.shared.edit(item.url, size: item.thumb.size)
+        } else if item.isPlainText {
+            NSWorkspace.shared.open(item.url)
         } else {
             Markup.shared.edit(item.url)
         }
@@ -349,9 +367,15 @@ func isRecording(_ url: URL) -> Bool {
     ["mov", "mp4"].contains(url.pathExtension.lowercased())
 }
 
+/// Copied text and Markdown notes, saved as plain text files.
+func isText(_ url: URL) -> Bool {
+    ["txt", "md", "markdown", "text"].contains(url.pathExtension.lowercased())
+}
+
 /// The default size covers a card at twice its size in points, as on a
 /// Retina screen, and no more: every photo on the line keeps one in memory.
 func makeThumbnail(_ url: URL, maxPixels: Int = Int(320 * Layout.size.scale)) -> NSImage? {
+    if isText(url) { return textThumbnail(url) }
     if isRecording(url) { return firstFrame(url, maxPixels: maxPixels) }
     guard let source = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
     let options: [CFString: Any] = [
@@ -370,4 +394,25 @@ private func firstFrame(_ url: URL, maxPixels: Int) -> NSImage? {
     generator.maximumSize = CGSize(width: maxPixels, height: maxPixels)
     guard let cg = try? generator.copyCGImage(at: .zero, actualTime: nil) else { return nil }
     return NSImage(cgImage: cg, size: NSSize(width: cg.width, height: cg.height))
+}
+
+/// A copied paragraph hangs as a sheet of paper with its first lines on it,
+/// drawn at the size of a card so it sits on the line like a photo.
+private func textThumbnail(_ url: URL) -> NSImage? {
+    guard let text = try? String(contentsOf: url, encoding: .utf8) else { return nil }
+    let size = NSSize(width: Layout.cardWidth, height: Layout.photoMaxHeight)
+    let style = NSMutableParagraphStyle()
+    style.lineBreakMode = .byTruncatingTail
+    style.lineSpacing = 2
+    let attributes: [NSAttributedString.Key: Any] = [
+        .font: NSFont.systemFont(ofSize: 10, weight: .regular),
+        .foregroundColor: NSColor(calibratedWhite: 0.16, alpha: 1),
+        .paragraphStyle: style,
+    ]
+    return NSImage(size: size, flipped: true) { rect in
+        NSColor(calibratedWhite: 0.995, alpha: 1).setFill()
+        NSBezierPath(rect: rect).fill()
+        (text as NSString).draw(in: rect.insetBy(dx: 9, dy: 9), withAttributes: attributes)
+        return true
+    }
 }

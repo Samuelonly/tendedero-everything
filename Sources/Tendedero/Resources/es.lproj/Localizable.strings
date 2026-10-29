@@ -1,22 +1,13 @@
 /* Spanish. */
 
 /* AppDelegate */
-"Let Tendedero handle your screenshots?" = "¿Quieres que Tendedero se encargue de tus capturas?";
-"Screenshots will hang on the line the instant you take them, without the floating thumbnail, and will not pile up on your Desktop. Drag one to a folder to keep it, or discard it with the cross. You can turn this off from the menu bar, and your settings come back when Tendedero quits." = "Las capturas se colgarán al instante, sin la miniatura flotante, y no se acumularán en el Escritorio. Arrastra una a una carpeta para guardarla, o descártala con la cruz. Puedes desactivarlo desde la barra de menús, y tus ajustes vuelven a ser los de antes al salir de Tendedero.";
-"Turn on" = "Activar";
-"Not now" = "Ahora no";
 "Hide line" = "Ocultar tendedero";
 "Show line" = "Mostrar tendedero";
 "Take everything down" = "Descolgar todo";
-"Handle screenshots" = "Encargarse de las capturas";
-"Screenshots hang instantly and skip the Desktop" = "Las capturas se cuelgan al instante y no pasan por el Escritorio";
 "Open screenshots folder" = "Abrir carpeta de capturas";
 "Sounds" = "Sonidos";
-"Open at login" = "Abrir al iniciar sesión";
 "Check for Updates…" = "Buscar actualizaciones…";
-"Quit Tendedero" = "Salir de Tendedero";
-"Could not change the login setting" = "No se pudo cambiar el inicio de sesión";
-"Move Tendedero to the Applications folder and try again." = "Mueve Tendedero a la carpeta Aplicaciones y vuelve a intentarlo.";
+"Quit Tendedero Multimedia" = "Salir de Tendedero Multimedia";
 "Keep on line" = "Guardar en la cuerda";
 "As many as fit" = "Las que quepan";
 "%d photos" = "%d fotos";
@@ -25,8 +16,6 @@
 "Stop Watching" = "Dejar de vigilar";
 "Watch" = "Vigilar";
 "New images saved to this folder will hang on the line." = "Las imágenes nuevas que se guarden en esta carpeta se colgarán en la cuerda.";
-"Shortcut" = "Atajo";
-"Change Shortcut…" = "Cambiar atajo…";
 "Change Shortcut" = "Cambiar atajo";
 "None" = "Ninguno";
 "Space" = "Espacio";
@@ -40,11 +29,31 @@
 "When the pointer rests in the menu bar" = "Al dejar el puntero en la barra de menús";
 "When something new hangs" = "Cuando se cuelga algo nuevo";
 "Over full screen apps" = "Sobre apps a pantalla completa";
-"Hang copied images" = "Colgar imágenes copiadas";
-"Images you copy hang on the line too" = "Las imágenes que copias también se cuelgan";
-"Tendedero, hanging copied images" = "Tendedero, colgando imágenes copiadas";
+"Tendedero Multimedia, hanging copied things" = "Tendedero Multimedia, colgando imágenes copiadas";
 "The line is empty" = "La cuerda está vacía";
 "%d on the line" = "%d en la cuerda";
+
+/* Line, position and shortcuts */
+"Position" = "Posición";
+"Top" = "Arriba";
+"Left" = "Izquierda";
+"Right" = "Derecha";
+"Shortcuts" = "Atajos";
+"Change Shortcuts…" = "Cambiar atajos…";
+"Change" = "Cambiar";
+"Clear" = "Quitar";
+"Done" = "Listo";
+"These shortcuts work in every app." = "Estos atajos funcionan en todas las apps.";
+"That shortcut is already used" = "Ese atajo ya está en uso";
+"Each action needs a different combination." = "Cada acción necesita una combinación distinta.";
+
+/* QuickCapture */
+"Quick Capture" = "Captura rápida";
+"Quick Capture needs Screen Recording" = "La captura rápida necesita la grabación de pantalla";
+"Turn on Screen Recording for Tendedero Multimedia in System Settings, then open Tendedero Multimedia again." = "Activa la grabación de pantalla para Tendedero Multimedia en Ajustes del Sistema y vuelve a abrir Tendedero Multimedia.";
+"Open System Settings" = "Abrir Ajustes del Sistema";
+"Later" = "Más tarde";
+"Click a window, or drag for an area. Escape quits." = "Haz clic en una ventana o arrastra para elegir un área. Escape sale.";
 
 /* GrabArea */
 "Copy" = "Copiar";
@@ -64,3 +73,7 @@
 
 /* PeggedView */
 "Copied" = "Copiado";
+
+/* Clipboard */
+"Hang copied things" = "";
+"Text, images and videos you copy hang on the line too" = "";

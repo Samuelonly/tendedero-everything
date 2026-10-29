@@ -2,7 +2,6 @@ import AppKit
 import Carbon
 import Combine
 import Quartz
-import ServiceManagement
 import SwiftUI
 
 @MainActor
@@ -11,16 +10,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var panel: LinePanel!
     private var statusItem: NSStatusItem!
     private var watcher: ScreenshotWatcher!
-    /// In inbox mode, a second watcher on the Desktop. If a macOS version
-    /// ignores the screenshot settings (macOS 27 renamed one), captures keep
-    /// landing on the Desktop, and they still hang on the line.
-    private var safetyWatcher: ScreenshotWatcher?
     /// Folders chosen in "Also watch folders", like the one another
     /// screenshot app saves to.
     private var folderWatchers: [ScreenshotWatcher] = []
     private var clipboardWatcher: ClipboardWatcher!
-    private var signalSources: [DispatchSourceSignal] = []
-    private var hotKey: HotKey?
+    private var hotKeys: [ShortcutAction: HotKey] = [:]
+    private var quickCapture: QuickCapture?
     private var cancellables = Set<AnyCancellable>()
     private var mouseTimer: Timer?
 
@@ -73,13 +68,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         panel.placeOnScreen()
         updateCapacity()
 
-        if Inbox.isEnabled { Inbox.apply() }
-        restoreSettingsOnTermination()
         startWatcher()
         clipboardWatcher = ClipboardWatcher { [weak self] url in self?.hangCapture(url) }
         if ClipboardWatcher.isEnabled { clipboardWatcher.start() }
 
-        registerShortcut()
+        registerShortcuts()
+        // While a shortcut is being recorded the app must not answer to it.
+        ShortcutSettings.shared.onBegin = { [weak self] in self?.unregisterShortcuts() }
+        ShortcutSettings.shared.onChange = { [weak self] in
+            self?.registerShortcuts()
+            self?.refresh()
+        }
 
         setUpStatusItem()
         watchMenuBarClicks()
@@ -127,10 +126,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             }
         }
 
-        if !Inbox.wasOffered {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in self?.offerInbox() }
-        }
-
         if !UserDefaults.standard.bool(forKey: "welcomed") {
             UserDefaults.standard.set(true, forKey: "welcomed")
             keepOpen = true
@@ -146,35 +141,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    func applicationWillTerminate(_ notification: Notification) {
-        if Inbox.isEnabled { Inbox.restore() }
-    }
-
-    // MARK: Inbox mode
+    // MARK: Watching folders
 
     private func startWatcher() {
         watcher?.stop()
-        safetyWatcher?.stop()
-        safetyWatcher = nil
         watcher = ScreenshotWatcher(
             onNew: { [weak self] url in self?.hangCapture(url) },
             onChange: { [weak self] in self?.line.prune() })
         watcher.start()
-        if Inbox.isEnabled, watcher.folder.standardizedFileURL != ScreenshotWatcher.desktop.standardizedFileURL {
-            let safety = ScreenshotWatcher(
-                folder: ScreenshotWatcher.desktop,
-                onNew: { [weak self] url in
-                    log.notice("Screenshot landed on the Desktop despite inbox mode: \(url.lastPathComponent, privacy: .public)")
-                    self?.hangCapture(url)
-                },
-                onChange: { [weak self] in self?.line.prune() })
-            safety.start()
-            safetyWatcher = safety
-        }
         folderWatchers.forEach { $0.stop() }
         folderWatchers = []
-        // A folder may also be watched for screenshots, like the Desktop; an
-        // image both report hangs once.
+        // A folder may also be watched for images, like where another
+        // screenshot app saves; an image both report hangs once.
         for folder in Self.extraFolders {
             let extra = ScreenshotWatcher(
                 folder: folder, anyImage: true,
@@ -217,46 +195,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         startWatcher()
     }
 
-    private func setInbox(_ on: Bool) {
-        Inbox.isEnabled = on
-        if on { Inbox.apply() } else { Inbox.restore() }
-        startWatcher()
-    }
-
-    /// Asked once. Changing system settings is the user's call, never ours.
-    private func offerInbox() {
-        Inbox.wasOffered = true
-        let alert = NSAlert()
-        alert.messageText = L("Let Tendedero handle your screenshots?")
-        alert.informativeText = L(
-            "Screenshots will hang on the line the instant you take them, without the floating thumbnail, and will not pile up on your Desktop. Drag one to a folder to keep it, or discard it with the cross. You can turn this off from the menu bar, and your settings come back when Tendedero quits.")
-        alert.addButton(withTitle: L("Turn on"))
-        alert.addButton(withTitle: L("Not now"))
-        if let icon = NSImage(named: "Tendedero") ?? NSApp.applicationIconImage { alert.icon = icon }
-        NSApp.activate(ignoringOtherApps: true)
-        if alert.runModal() == .alertFirstButtonReturn { setInbox(true) }
-    }
-
     /// Watching the clipboard is opt in, from the menu bar only.
     private func setClipboard(_ on: Bool) {
         ClipboardWatcher.isEnabled = on
         if on { clipboardWatcher.start() } else { clipboardWatcher.stop() }
         updateStatusIcon()
-    }
-
-    /// Quitting from the menu or logging out runs applicationWillTerminate.
-    /// A plain kill does not, so settings are also restored on those signals.
-    private func restoreSettingsOnTermination() {
-        for sig in [SIGTERM, SIGINT, SIGHUP] {
-            signal(sig, SIG_IGN)
-            let source = DispatchSource.makeSignalSource(signal: sig, queue: .main)
-            source.setEventHandler {
-                if Inbox.isEnabled { Inbox.restore() }
-                exit(0)
-            }
-            source.resume()
-            signalSources.append(source)
-        }
     }
 
     // MARK: Showing and hiding
@@ -285,9 +228,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     // MARK: The capture flying to the line
 
     /// A new screenshot lifts off from where it was taken and flies to its
-    /// place on the line. Without a known capture area it simply drops in.
-    private func hangCapture(_ url: URL) {
-        let from = captureRect(of: url)
+    /// place on the line. Without a known capture area it simply drops in;
+    /// Quick Capture knows the area it shot, so it passes it along.
+    private func hangCapture(_ url: URL, from known: CGRect? = nil) {
+        let from = known ?? captureRect(of: url)
         let screen = from.flatMap { from in
             NSScreen.screens.first { NSMouseInRect(CGPoint(x: from.midX, y: from.midY), $0.frame, false) }
         }
@@ -339,15 +283,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     /// as the line view.
     private func cardFrame(for id: UUID) -> CGRect? {
         guard let index = line.items.firstIndex(where: { $0.id == id }) else { return nil }
-        let width = panel.frame.width
-        let x = Layout.x(index: index, count: line.items.count, width: width,
-                         visible: line.visibleCount, scroll: line.scroll)
-        let viewTop = Layout.ropeY(x: x, width: width) - Layout.pinAbove
-        let cardTop = viewTop + PeggedView.cardOffsetBelowTop
+        let panelLength = Layout.position.isSide ? panel.frame.height : panel.frame.width
         let size = PeggedView.cardSize(for: line.items[index].thumb.size)
-        return CGRect(x: panel.frame.minX + x - size.width / 2,
-                      y: panel.frame.maxY - cardTop - size.height,
-                      width: size.width, height: size.height)
+        let rect = Layout.cardRect(index: index, count: line.items.count, visible: line.visibleCount,
+                                   scroll: line.scroll, size: size, panelLength: panelLength)
+        // The panel's own coordinates run down from its top edge.
+        return CGRect(x: panel.frame.minX + rect.minX,
+                      y: panel.frame.maxY - rect.maxY,
+                      width: rect.width, height: rect.height)
     }
 
     /// Decides whether the panel is ordered in at all: something to show,
@@ -490,13 +433,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         return NSRect(x: screen.frame.minX, y: screen.frame.maxY - h, width: screen.frame.width, height: h)
     }
 
-    /// A click anywhere in the top bar of any screen, a menu or an icon, puts the line away.
+    /// The strip the pointer rests against to bring the line down: the menu
+    /// bar on top, a sliver along the edge of the screen on the sides. It sits
+    /// on the visible edge, so a Dock on that side does not cover it.
+    static func hotBand(of screen: NSScreen) -> NSRect {
+        let visible = screen.visibleFrame
+        switch Layout.position {
+        case .top:
+            return menuBarBand(of: screen)
+        case .left:
+            return NSRect(x: visible.minX, y: visible.minY, width: 3, height: visible.height)
+        case .right:
+            return NSRect(x: visible.maxX - 3, y: visible.minY, width: 3, height: visible.height)
+        }
+    }
+
+    /// A click anywhere in that strip, a menu or an icon, puts the line away
+    /// and keeps it away until the pointer leaves.
     private func watchMenuBarClicks() {
         let handler: (NSEvent?) -> Void = { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
                 let p = NSEvent.mouseLocation
-                guard NSScreen.screens.contains(where: { NSMouseInRect(p, Self.menuBarBand(of: $0), false) }) else { return }
+                guard NSScreen.screens.contains(where: { NSMouseInRect(p, Self.hotBand(of: $0), false) }) else { return }
                 self.menuBarSuppressed = true
                 self.hotZoneSince = nil
                 if self.isRevealed {
@@ -520,17 +479,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let now = Date()
 
         let screenUnderPointer = NSScreen.screens.first { NSMouseInRect(mouse, $0.frame, false) }
-        let inMenuBar = screenUnderPointer.map { NSMouseInRect(mouse, Self.menuBarBand(of: $0), false) } ?? false
-        if !inMenuBar { menuBarSuppressed = false }
+        let inEdge = screenUnderPointer.map { NSMouseInRect(mouse, Self.hotBand(of: $0), false) } ?? false
+        if !inEdge { menuBarSuppressed = false }
 
         guard isRevealed else {
-            // Resting in the menu bar brings the line down on that screen.
-            // Pushing against the top edge is part of it, and it also works
-            // when another display sits above and the pointer never stops.
-            // An empty line stays up there: only the shortcut and the menu
-            // bring it down on purpose.
+            // Resting against the edge brings the line down on that screen.
+            // Pushing against the edge is part of it, and it also works when
+            // another display sits next to it and the pointer never stops.
+            // An empty line stays away: only the shortcut and the menu bring
+            // it down on purpose.
             if line.liveCount > 0, Self.opensFromMenuBar, let screen = screenUnderPointer,
-               inMenuBar, !menuBarSuppressed, !FullScreen.blocksLine(on: screen) {
+               inEdge, !menuBarSuppressed, !FullScreen.blocksLine(on: screen) {
                 let since = hotZoneSince ?? now
                 hotZoneSince = since
                 if now.timeIntervalSince(since) >= Self.revealDelay {
@@ -550,10 +509,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         updateMousePassThrough(mouse)
 
-        // The line's zone runs from its lowest point up to the top of the
-        // screen, menu bar included, so moving up never hides it.
+        // The line's zone runs from its lowest points out to the screen edge
+        // it hangs on, so moving towards that edge never hides it.
         var zone = panel.frame
-        if let screen = panel.screen { zone.size.height = screen.frame.maxY - zone.minY }
+        if let screen = panel.screen {
+            switch Layout.position {
+            case .top:
+                zone.size.height = screen.frame.maxY - zone.minY
+            case .left:
+                zone.origin.x = screen.frame.minX
+                zone.size.width = panel.frame.maxX - screen.frame.minX
+            case .right:
+                zone.size.width = screen.frame.maxX - zone.minX
+            }
+        }
         let inside = NSMouseInRect(mouse, zone, false)
         if inside && pinned { pinned = false }
 
@@ -590,32 +559,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    // MARK: Shortcut
+    // MARK: Shortcuts
 
-    private func registerShortcut() {
-        hotKey = nil
-        guard let shortcut = Shortcut.current else { return }
-        hotKey = HotKey(shortcut) { [weak self] in self?.toggle() }
+    private func registerShortcuts() {
+        unregisterShortcuts()
+        for action in ShortcutAction.allCases {
+            guard let shortcut = action.shortcut else { continue }
+            guard let hotKey = HotKey(shortcut, action: { [weak self] in self?.perform(action) }) else {
+                log.notice("Could not register the shortcut for \(action.rawValue, privacy: .public)")
+                continue
+            }
+            hotKeys[action] = hotKey
+        }
     }
 
-    private func changeShortcut() {
-        // Off while recording, so pressing the current one records it
-        // instead of showing the line.
-        hotKey = nil
-        ShortcutRecorder.shared.record { [weak self] result in
-            guard let self else { return }
-            if let result {
-                let previous = Shortcut.current
-                Shortcut.current = result
-                self.registerShortcut()
-                // Taken by another app: keep the one that worked.
-                if result != nil && self.hotKey == nil {
-                    NSSound.beep()
-                    Shortcut.current = previous
-                }
-            }
-            self.registerShortcut()
+    private func unregisterShortcuts() {
+        hotKeys = [:]
+    }
+
+    private func perform(_ action: ShortcutAction) {
+        switch action {
+        case .showLine: toggle()
+        case .quickCapture: startQuickCapture()
         }
+    }
+
+    // MARK: Position and capturing
+
+    private func setPosition(_ position: Layout.Position) {
+        guard position != Layout.position else { return }
+        Layout.position = position
+        line.scroll = 0
+        line.hitRects = [:]
+        line.reloadThumbnails()
+        panel.placeOnScreen(panel.screen)
+        updateCapacity()
+        refresh()
+        if isRevealed { reveal(pinned: pinned) }
+    }
+
+    private func startQuickCapture() {
+        if quickCapture == nil {
+            let capture = QuickCapture()
+            capture.onCaptured = { [weak self] url, rect in
+                self?.hangCapture(url, from: rect)
+            }
+            quickCapture = capture
+        }
+        quickCapture?.start()
     }
 
     private func setKeep(_ n: Int?) {
@@ -634,10 +625,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func updateCapacity() {
-        let usable = panel.frame.width - 200
-        let fits = max(3, min(12, Int(usable / Layout.spacing)))
+        let length = Layout.position.isSide ? panel.frame.height : panel.frame.width
+        let usable = length - 200
+        let fits = max(3, min(12, Int(usable / Layout.alongSpacing)))
         line.visibleCount = fits
-        line.maxItems = max(fits, Line.keepOnLine ?? fits)
+        line.maxItems = Line.keepOnLine ?? fits
     }
 
     // MARK: Menu bar
@@ -660,7 +652,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func updateStatusIcon() {
         let on = ClipboardWatcher.isEnabled
         let count = line.liveCount
-        let description = on ? L("Tendedero, hanging copied images") : "Tendedero"
+        let description = on ? L("Tendedero Multimedia, hanging copied things") : "Tendedero Multimedia"
         let state = count == 0 ? L("The line is empty") : String(format: L("%d on the line"), count)
         let image = NSImage(systemSymbolName: on ? "tshirt.fill" : "tshirt",
                             accessibilityDescription: "\(description), \(state)")
@@ -676,7 +668,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let toggleItem = ClosureMenuItem(isRevealed ? L("Hide line") : L("Show line")) { [weak self] in
             self?.toggle()
         }
-        if let shortcut = Shortcut.current, shortcut.key.count == 1 {
+        if let shortcut = ShortcutAction.showLine.shortcut, shortcut.key.count == 1 {
             toggleItem.keyEquivalent = shortcut.key
             toggleItem.keyEquivalentModifierMask = shortcut.modifiers
         }
@@ -688,18 +680,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         clearItem.isEnabled = line.liveCount > 0
         menu.addItem(clearItem)
 
-        let inbox = ClosureMenuItem(L("Handle screenshots")) { [weak self] in
-            self?.setInbox(!Inbox.isEnabled)
+        let captureItem = ClosureMenuItem(L("Quick Capture")) { [weak self] in
+            self?.startQuickCapture()
         }
-        inbox.state = Inbox.isEnabled ? .on : .off
-        inbox.toolTip = L("Screenshots hang instantly and skip the Desktop")
-        menu.addItem(inbox)
+        if let shortcut = ShortcutAction.quickCapture.shortcut, shortcut.key.count == 1 {
+            captureItem.keyEquivalent = shortcut.key
+            captureItem.keyEquivalentModifierMask = shortcut.modifiers
+        }
+        menu.addItem(captureItem)
 
-        let clipboard = ClosureMenuItem(L("Hang copied images")) { [weak self] in
+        let positionItem = NSMenuItem(title: L("Position"), action: nil, keyEquivalent: "")
+        let positions = NSMenu()
+        for position in Layout.Position.allCases {
+            let item = ClosureMenuItem(position.label) { [weak self] in self?.setPosition(position) }
+            item.state = Layout.position == position ? .on : .off
+            positions.addItem(item)
+        }
+        positionItem.submenu = positions
+        menu.addItem(positionItem)
+
+        let clipboard = ClosureMenuItem(L("Hang copied things")) { [weak self] in
             self?.setClipboard(!ClipboardWatcher.isEnabled)
         }
         clipboard.state = ClipboardWatcher.isEnabled ? .on : .off
-        clipboard.toolTip = L("Images you copy hang on the line too")
+        clipboard.toolTip = L("Text, images and videos you copy hang on the line too")
         menu.addItem(clipboard)
 
         let bringDown = NSMenuItem(title: L("Bring the line down"), action: nil, keyEquivalent: "")
@@ -776,12 +780,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         sizeItem.submenu = sizes
         menu.addItem(sizeItem)
 
-        let shortcutItem = NSMenuItem(title: L("Shortcut"), action: nil, keyEquivalent: "")
+        let shortcutItem = NSMenuItem(title: L("Shortcuts"), action: nil, keyEquivalent: "")
         let shortcuts = NSMenu()
-        let current = NSMenuItem(title: Shortcut.current?.display ?? L("None"), action: nil, keyEquivalent: "")
-        current.isEnabled = false
-        shortcuts.addItem(current)
-        shortcuts.addItem(ClosureMenuItem(L("Change Shortcut…")) { [weak self] in self?.changeShortcut() })
+        for action in ShortcutAction.allCases {
+            let item = NSMenuItem(title: "\(action.title)  \(action.shortcut?.display ?? L("None"))",
+                                  action: nil, keyEquivalent: "")
+            item.isEnabled = false
+            shortcuts.addItem(item)
+        }
+        shortcuts.addItem(.separator())
+        shortcuts.addItem(ClosureMenuItem(L("Change Shortcuts…")) { ShortcutSettings.shared.show() })
         shortcutItem.submenu = shortcuts
         menu.addItem(shortcutItem)
 
@@ -799,12 +807,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         sound.state = line.soundOn ? .on : .off
         menu.addItem(sound)
 
-        let login = ClosureMenuItem(L("Open at login")) {
-            AppDelegate.toggleLaunchAtLogin()
-        }
-        login.state = SMAppService.mainApp.status == .enabled ? .on : .off
-        menu.addItem(login)
-
         // The app never connects to anything, so it cannot tell when a new
         // version is out. The website can: it is opened with this version
         // and language, and says whether there is a newer one.
@@ -813,7 +815,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         })
 
         menu.addItem(.separator())
-        menu.addItem(ClosureMenuItem(L("Quit Tendedero"), key: "q") {
+        menu.addItem(ClosureMenuItem(L("Quit Tendedero Multimedia"), key: "q") {
             NSApp.terminate(nil)
         })
     }
@@ -829,22 +831,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         components.queryItems = query
         return components.url!
-    }
-
-    private static func toggleLaunchAtLogin() {
-        do {
-            if SMAppService.mainApp.status == .enabled {
-                try SMAppService.mainApp.unregister()
-            } else {
-                try SMAppService.mainApp.register()
-            }
-        } catch {
-            let alert = NSAlert()
-            alert.messageText = L("Could not change the login setting")
-            alert.informativeText = L("Move Tendedero to the Applications folder and try again.")
-            NSApp.activate(ignoringOtherApps: true)
-            alert.runModal()
-        }
     }
 
     // MARK: Quick Look

@@ -1,12 +1,12 @@
 #!/bin/bash
-# Builds Tendedero.app into ./build without needing Xcode.
+# Builds Tendedero Multimedia.app into ./build without needing Xcode.
 # Usage: scripts/build-app.sh [debug|release]
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 CONFIG="${1:-release}"
-APP="build/Tendedero.app"
-VERSION="1.6.1"
+APP="build/Tendedero Multimedia.app"
+VERSION="1.7.0"
 
 # Builds one architecture and prints the binary's path.
 # The Command Line Tools for macOS 27 ship an SDK whose SwiftUI needs a macro
@@ -61,25 +61,25 @@ cat > "$APP/Contents/Info.plist" <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <key>CFBundleName</key><string>Tendedero</string>
-  <key>CFBundleDisplayName</key><string>Tendedero</string>
+  <key>CFBundleName</key><string>Tendedero Multimedia</string>
+  <key>CFBundleDisplayName</key><string>Tendedero Multimedia</string>
   <key>CFBundleIdentifier</key><string>app.tendedero.Tendedero</string>
   <key>CFBundleExecutable</key><string>Tendedero</string>
   <key>CFBundleIconFile</key><string>Tendedero</string>
   <key>CFBundlePackageType</key><string>APPL</string>
   <key>CFBundleShortVersionString</key><string>${VERSION}</string>
-  <key>CFBundleVersion</key><string>8</string>
+  <key>CFBundleVersion</key><string>9</string>
   <key>CFBundleDevelopmentRegion</key><string>en</string>
   <key>CFBundleLocalizations</key><array>${LANGUAGES}</array>
   <key>LSMinimumSystemVersion</key><string>14.0</string>
   <key>LSUIElement</key><true/>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSDesktopFolderUsageDescription</key>
-  <string>Tendedero watches the folder where macOS saves your screenshots so it can hang them on the line.</string>
+  <string>Tendedero Multimedia watches the folder where macOS saves your screenshots so it can hang them on the line.</string>
   <key>NSDocumentsFolderUsageDescription</key>
-  <string>Tendedero watches the folder you chose so it can hang new images on the line.</string>
+  <string>Tendedero Multimedia watches the folder you chose so it can hang new images on the line.</string>
   <key>NSDownloadsFolderUsageDescription</key>
-  <string>Tendedero watches the folder you chose so it can hang new images on the line.</string>
+  <string>Tendedero Multimedia watches the folder you chose so it can hang new images on the line.</string>
 </dict>
 </plist>
 PLIST
@@ -88,9 +88,16 @@ PLIST
 # set), with the hardened runtime and a secure timestamp that notarization
 # requires. Without one, sign ad hoc so the app still runs locally.
 IDENTITY="${SIGN_IDENTITY:-$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Developer ID Application/{print $2; exit}')}"
+# Without a Developer ID, prefer a local certificate: its signing requirement
+# stays the same across rebuilds, so macOS keeps the Screen Recording grant.
+# An ad-hoc signature changes every build and makes TCC ask again each time.
+LOCAL_IDENTITY="${LOCAL_SIGN_IDENTITY:-$(security find-identity -v -p codesigning 2>/dev/null | awk -F'"' '/Chatterkill Local Signing/{print $2; exit}')}"
 if [ -n "$IDENTITY" ]; then
   codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
   echo "Signed with $IDENTITY"
+elif [ -n "$LOCAL_IDENTITY" ]; then
+  codesign --force --sign "$LOCAL_IDENTITY" "$APP"
+  echo "Signed with $LOCAL_IDENTITY (local certificate)"
 else
   codesign --force --deep --sign - "$APP" >/dev/null
   echo "Signed ad hoc (no Developer ID found)"

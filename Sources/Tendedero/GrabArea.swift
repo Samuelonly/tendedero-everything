@@ -51,7 +51,7 @@ struct GrabArea: NSViewRepresentable {
             menu.addItem(ClosureMenuItem(L("Copy")) { line.copy(id) })
             menu.addItem(ClosureMenuItem(L("Open")) { line.open(id) })
             menu.addItem(ClosureMenuItem(L("Quick Look")) { line.quickLook(id) })
-            if !isRecording {
+            if !isRecording && !item.isPlainText {
                 menu.addItem(ClosureMenuItem(L("Markup")) { line.markup(id) })
             }
             menu.addItem(ClosureMenuItem(L("Show in Finder")) { line.reveal(id) })
