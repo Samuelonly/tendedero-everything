@@ -12,6 +12,23 @@
 > 快速捕获和两个快捷键。下面的介绍来自原版，除标注为本分叉新增的部分外均保持原样。
 > 原版的名称与图标归原作者所有。
 
+<br>
+
+<h2 align="center">Tendedero Everything</h2>
+
+<p align="center">
+  <img src="docs/images/tendedero-everything-screenshot.jpg" alt="Cards hang from a line down the left edge of the screen: a text snippet, a copied file, a video's first frame, a copied path and a screenshot." width="440">
+</p>
+
+> **English.** This is the *everything* edition. What you copy hangs on the line — a file, a file's
+> path, a video, a screenshot, or plain text. The original only caught screenshots and deliberately
+> skipped links and addresses on their own; here there is no such rule, text is text.
+>
+> **中文。** 这是加强版：你复制的一切都会挂到晾衣绳上 —— 文件、文件路径、视频、截屏、普通文字，
+> 全部都可以。原版只接截图，还会主动跳过单独的链接和邮箱地址；这里没有这条规则，文字就是文字。
+
+<br>
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.png">
   <img src="docs/images/hero-light.png" alt="Tendedero. Screenshots, hung out to dry. Three screenshots in glass frames hang from a thin line under the macOS menu bar.">
@@ -40,7 +57,7 @@
 
 | | |
 |:--|:--|
-| **Multimedia clipboard** | Text, Markdown, images and `.mp4`/`.mov` video copied in any app hang on the line, not only screenshots. |
+| **Multimedia clipboard** | Text, Markdown, links, a copied file, a copied path, images and `.mp4`/`.mov` video hang on the line, not only screenshots. Nothing is filtered out by content. |
 | **Line on the left or right** | Position › Left, Top or Right in the menu bar. Left is the default; the rope bends into the screen and the photos stay upright. |
 | **Quick Capture** | <kbd>⌃</kbd>&thinsp;<kbd>⌥</kbd>&thinsp;<kbd>S</kbd> dims the screen. Click a window or drag an area, keep shooting, press Escape to stop. Each shot flies straight onto the line. |
 | **Two shortcuts** | Show or hide the line, and Quick Capture, each recorded under Shortcuts in the menu bar. The two cannot share a combination. |
