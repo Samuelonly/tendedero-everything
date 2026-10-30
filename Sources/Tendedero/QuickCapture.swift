@@ -128,6 +128,14 @@ final class QuickCapture {
                 NSSound.beep()
                 return
             }
+            // 快速捕获同时写剪贴板（图片 data，让 Cmd+V 直接粘贴图片），
+            // 并把截图挂到晾衣绳上。不要存额外的副本文件——scratch 已经是阅后即焚。
+            let pb = NSPasteboard.general
+            pb.clearContents()
+            let rep = NSBitmapImageRep(cgImage: image)
+            if let tiff = rep.tiffRepresentation {
+                pb.setData(tiff, forType: .tiff)
+            }
             // One capture is the whole errand: the line flies it in, and the
             // screen goes back to normal without a second click.
             self.stop()

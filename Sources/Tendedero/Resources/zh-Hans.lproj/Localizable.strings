@@ -77,3 +77,4 @@
 /* Clipboard */
 "Hang copied things" = "挂起复制的内容";
 "Text, images and videos you copy hang on the line too" = "你复制的文字、图片和视频也会挂到绳上";
+"Launch at Login" = "开机启动";

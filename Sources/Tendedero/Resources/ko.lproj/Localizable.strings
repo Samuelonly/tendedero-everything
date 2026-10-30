@@ -77,3 +77,4 @@
 /* Clipboard */
 "Hang copied things" = "복사한 항목 걸기";
 "Text, images and videos you copy hang on the line too" = "복사한 텍스트, 이미지, 동영상도 빨랫줄에 걸립니다";
+"Launch at Login" = "로그인 시 실행";

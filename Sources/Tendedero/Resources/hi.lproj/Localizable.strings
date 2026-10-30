@@ -79,3 +79,4 @@
 /* Clipboard */
 "Hang copied things" = "कॉपी की गई चीज़ें टाँगें";
 "Text, images and videos you copy hang on the line too" = "आपके द्वारा कॉपी किए गए टेक्स्ट, चित्र और वीडियो भी लाइन पर टँगते हैं";
+"Launch at Login" = "लॉगिन पर लॉन्च करें";

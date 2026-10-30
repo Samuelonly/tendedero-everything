@@ -2,6 +2,7 @@ import AppKit
 import Carbon
 import Combine
 import Quartz
+import ServiceManagement
 import SwiftUI
 
 @MainActor
@@ -59,6 +60,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     static var peeksAtNew: Bool {
         get { !UserDefaults.standard.bool(forKey: "quietHang") }
         set { UserDefaults.standard.set(!newValue, forKey: "quietHang") }
+    }
+
+    /// Whether Tendedero Everything launches at login. A toggle in the menu
+    /// bar, between Sounds and Check for Updates.
+    static var launchAtLogin: Bool {
+        get { SMAppService.mainApp.status == .enabled }
+        set {
+            do {
+                if newValue {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+                log.notice("Launch at login set to \(newValue, privacy: .public)")
+            } catch {
+                log.notice("Launch at login failed: \(error)")
+            }
+        }
     }
 
     /// Nothing a Quick Capture wrote outlives the run.
@@ -814,6 +833,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         sound.state = line.soundOn ? .on : .off
         menu.addItem(sound)
+
+        let launchItem = ClosureMenuItem(L("Launch at Login")) {
+            AppDelegate.launchAtLogin.toggle()
+        }
+        launchItem.state = Self.launchAtLogin ? .on : .off
+        menu.addItem(launchItem)
 
         // The app never connects to anything, so it cannot tell when a new
         // version is out. The website can: it is opened with this version

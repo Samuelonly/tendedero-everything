@@ -77,3 +77,4 @@
 /* Clipboard */
 "Hang copied things" = "Colgar lo copiado";
 "Text, images and videos you copy hang on the line too" = "El texto, las imágenes y los vídeos que copias también se tienden en la cuerda";
+"Launch at Login" = "Abrir al iniciar sesión";

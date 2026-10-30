@@ -77,3 +77,4 @@
 /* Clipboard */
 "Hang copied things" = "コピーしたものを掛ける";
 "Text, images and videos you copy hang on the line too" = "コピーしたテキスト・画像・動画も物干しに掛かります";
+"Launch at Login" = "ログイン時に起動";
