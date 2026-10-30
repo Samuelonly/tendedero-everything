@@ -853,17 +853,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         })
     }
 
-    /// tendedero.app with the running version, and the menus' language when
-    /// the website has it too, so the page answers in the same words.
+    /// 跳到我们自己 fork 的 GitHub Releases 最新页。原版 tendedero.app
+    /// 不知道我们的 fork 版本，跳过去只会说"已是最新"。
     private static var updatesURL: URL {
-        var components = URLComponents(string: "https://tendedero.app/")!
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
-        var query = [URLQueryItem(name: "update", value: version)]
-        if let language = Bundle.main.preferredLocalizations.first, ["en", "es", "gl", "fr", "pt-BR", "ja", "ko", "zh-Hans"].contains(language) {
-            query.append(URLQueryItem(name: "lang", value: language))
-        }
-        components.queryItems = query
-        return components.url!
+        URL(string: "https://github.com/Samuelonly/tendedero-everything/releases/latest")!
     }
 
     // MARK: Quick Look
